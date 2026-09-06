@@ -68,6 +68,13 @@ In addition to the packages specified in the table above, the following packages
 
 See [Dockerfile](Dockerfile) for the full details of installed packages.
 
+## Canonical data schema
+
+The initial canonical schema for identity, registry, policy, and audit exports
+is available at [schemas/identity-registry-policy-audit.schema.json](schemas/identity-registry-policy-audit.schema.json).
+See [schemas/README.md](schemas/README.md) for the document contract and
+compatibility guidance.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openai.com/schemas/identity-registry-policy-audit.schema.json",
+  "title": "Identity, Registry, Policy, and Audit Document",
+  "description": "The canonical interchange document for principals, registered resources, access policies, and audit events.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "identities", "registry", "policies", "auditEvents"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "identities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/identity" },
+      "uniqueItems": true
+    },
+    "registry": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/registryEntry" },
+      "uniqueItems": true
+    },
+    "policies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/policy" },
+      "uniqueItems": true
+    },
+    "auditEvents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/auditEvent" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._:-]{2,127}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "identityReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "type": {
+          "enum": ["user", "service", "group"]
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "type": {
+          "enum": ["user", "service", "group"]
+        },
+        "status": {
+          "enum": ["active", "suspended", "deprovisioned"]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "externalIds": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "registryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "owner"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner": { "$ref": "#/$defs/identityReference" },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "policyTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "policyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effect", "subjects", "resources", "actions"],
+      "properties": {
+        "effect": {
+          "enum": ["allow", "deny"]
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/identityReference" }
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/policyTarget" }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._:-]{1,127}$"
+          }
+        },
+        "conditions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "rules"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/policyRule" }
+        }
+      }
+    },
+    "auditEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "occurredAt", "actor", "action", "target", "outcome"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "occurredAt": { "$ref": "#/$defs/timestamp" },
+        "actor": { "$ref": "#/$defs/identityReference" },
+        "action": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._:-]{1,127}$"
+        },
+        "target": { "$ref": "#/$defs/policyTarget" },
+        "outcome": {
+          "enum": ["success", "failure", "denied"]
+        },
+        "policyId": { "$ref": "#/$defs/identifier" },
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
